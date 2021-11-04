@@ -2,6 +2,8 @@
 AWSTemplateFormatVersion: 2010-09-09
 
 Resources: 
+
+#VPC
   myVPC:
     Type: AWS::EC2::VPC
     Properties:
@@ -11,6 +13,8 @@ Resources:
         - Key: Name
           Value: kadaiVPC
 
+
+#インターネットゲートウェイ
   MyIGW:
     Type: AWS::EC2::InternetGateway
     Properties:
@@ -23,6 +27,8 @@ Resources:
       VpcId: !Ref myVPC
       InternetGatewayId: !Ref MyIGW
 
+
+#サブネット
   PublicA:
     Type: AWS::EC2::Subnet
     Properties:
@@ -63,6 +69,8 @@ Resources:
         - Key: Name
           Value: PriB
 
+
+#パブリックルートテーブル
   PubRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -89,6 +97,8 @@ Resources:
       SubnetId: !Ref PublicB
       RouteTableId: !Ref PubRouteTable
 
+
+#NATゲートウェイ
   NAT:
     Type: AWS::EC2::NatGateway
     Properties:
@@ -107,6 +117,8 @@ Resources:
     Properties: 
       Domain: !Ref myVPC
 
+
+#プライベートルートテーブル
   PrivateRoute:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -134,6 +146,7 @@ Resources:
       RouteTableId: !Ref PrivateRoute
 
 
+#出力
 Outputs:
   VPC:
     Value: !Ref myVPC
