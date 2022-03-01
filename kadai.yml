@@ -1,6 +1,34 @@
 #Made by rockyx2000
 AWSTemplateFormatVersion: 2010-09-09
 
+Mappings:
+  AZMap:
+    useast1:
+      1a: "us-east-1a"
+      1b: "us-east-1b"
+      1c: "us-east-1c"
+      1d: "us-east-1d"
+      1e: "us-east-1e"
+
+    useast2:
+      2a: "us-east-2a"
+      2b: "us-east-2b"
+      2c: "us-east-2c"
+
+    uswest1:
+      1a: "us-west-1a"
+      1c: "us-west-1c"
+
+    uswest2:
+      2a: "us-west-2a"
+      2b: "us-west-2b"
+      2c: "us-west-2c"
+      2d: "us-west-2d"
+
+    
+
+
+
 Resources: 
 
 #VPC
@@ -8,7 +36,6 @@ Resources:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: 10.0.0.0/16
-      EnableDnsSupport: true
       Tags:
         - Key: Name
           Value: kadaiVPC
@@ -172,5 +199,4 @@ Outputs:
     Value: !Ref PrivateB
     Export:
       Name: PriB
-
 
