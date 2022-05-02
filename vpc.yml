@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: 2010-09-09
 
 Resources: 
-
+# Create VPC
         MyVPC:
           Type: AWS::EC2::VPC
           Properties:
@@ -23,6 +23,8 @@ Resources:
               - Key: Name
                 Value: PublicSubnet1
 
+
+# Create Subnet & Internet GW
         PriSub1:
           Type: AWS::EC2::Subnet
           Properties:
@@ -71,6 +73,8 @@ Resources:
             VpcId: !Ref MyVPC
             InternetGatewayId: !Ref MyIGW
 
+
+# Create Route Table
         PublicRouteTable:
           Type: AWS::EC2::RouteTable
           Properties:
@@ -92,11 +96,31 @@ Resources:
             SubnetId: !Ref PubSub1
             RouteTableId: !Ref PublicRouteTable
 
-        routeTableAssocName:
+        routeTableAssocPub2:
           Type: AWS::EC2::SubnetRouteTableAssociation
           Properties:
             SubnetId: !Ref PubSub2
             RouteTableId: !Ref PublicRouteTable
+
+        PrivateRouteTable:
+          Type: AWS::EC2::RouteTable
+          Properties:
+            VpcId: !Ref MyVPC 
+            Tags:
+              - Key: Name
+                Value: PrivateRoute
+
+        routeTableAssocPri1:
+          Type: AWS::EC2::SubnetRouteTableAssociation
+          Properties:
+            SubnetId: !Ref PriSub1
+            RouteTableId: !Ref PrivateRouteTable
+
+        routeTableAssocPri2:
+          Type: AWS::EC2::SubnetRouteTableAssociation
+          Properties:
+            SubnetId: !Ref PriSub2
+            RouteTableId: !Ref PrivateRouteTable
 
 Outputs:
   VPC:
