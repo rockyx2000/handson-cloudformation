@@ -21,7 +21,7 @@ Resources:
             CidrBlock: 10.0.1.0/24
             Tags:
               - Key: Name
-                Value: PublicSubnet
+                Value: PublicSubnet1
 
         PriSub1:
           Type: AWS::EC2::Subnet
@@ -31,6 +31,9 @@ Resources:
             - Fn::GetAZs: !Ref 'AWS::Region'
             CidrBlock: 10.0.2.0/24
             VpcId: !Ref MyVPC
+            Tags:
+              - Key: Name
+                Value: PrivateSubnet1
 
         PubSub2:
           Type: AWS::EC2::Subnet
@@ -40,6 +43,10 @@ Resources:
             - Fn::GetAZs: !Ref 'AWS::Region'
             CidrBlock: 10.0.3.0/24
             VpcId: !Ref MyVPC
+            Tags:
+              - Key: Name
+                Value: PublicSubnet2
+
         
         PriSub2:
           Type:  AWS::EC2::Subnet
@@ -49,7 +56,9 @@ Resources:
             - Fn::GetAZs: !Ref 'AWS::Region'
             CidrBlock: 10.0.4.0/24
             VpcId: !Ref MyVPC
-
+            Tags:
+              - Key: Name
+                Value: PrivateSubnet2
         MyIGW:
           Type: AWS::EC2::InternetGateway
           Properties:
