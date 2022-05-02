@@ -1,0 +1,202 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Resources: 
+#######
+# VPC
+#######
+  myVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: myVPC
+
+######
+# InternetGW
+######
+  internetGW:
+      Type: AWS::EC2::InternetGateway
+      Properties:
+        Tags:
+          - Key: Name
+            Value: internetGW
+
+#####
+# AttachInternetGateway
+#####      
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref myVPC
+      InternetGatewayId: !Ref internetGW
+
+#####
+# PublicSubnet00
+#####
+  PublicSubnet00:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select 
+      - 0
+      - Fn::GetAZs: !Ref 'AWS::Region'
+      VpcId: !Ref myVPC
+      CidrBlock: 10.0.0.0/24
+      Tags:
+        - Key: Name
+          Value: PublicSubnet00
+
+#####
+# PublicSubnet02
+#####
+  PublicSubnet02:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select 
+      - 1
+      - Fn::GetAZs: !Ref 'AWS::Region'
+      VpcId: !Ref myVPC
+      CidrBlock: 10.0.2.0/24
+      Tags:
+        - Key: Name
+          Value: PublicSubnet02
+
+#####
+# PrivateSubnet01
+#####
+  PrivateSubnet01:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select 
+      - 0
+      - Fn::GetAZs: !Ref 'AWS::Region'
+      VpcId: !Ref myVPC
+      CidrBlock: 10.0.1.0/24
+      Tags:
+        - Key: Name
+          Value: PrivateSubnet01
+
+#####
+# PrivateSubnet03
+#####
+  PrivateSubnet03:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select 
+      - 1
+      - Fn::GetAZs: !Ref 'AWS::Region'
+      VpcId: !Ref myVPC
+      CidrBlock: 10.0.3.0/24
+      Tags:
+        - Key: Name
+          Value: PrivateSubnet03     
+
+#####
+# NatGateway
+#####
+  NatGW:
+    Type: AWS::EC2::NatGateway
+    Properties: 
+      AllocationId: !GetAtt EIpNatGW.AllocationId
+      SubnetId: !Ref PublicSubnet00
+      Tags:
+        - Key: Name
+          Value: NatGW
+  EIpNatGW:
+    Type: AWS::EC2::EIP 
+    Properties:
+      Domain: vpc
+
+#######
+# PublicRouteTable
+#######
+  RouteTablePublic:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref myVPC
+      Tags:
+        - Key: Name
+          Value: RouteTablePublic
+
+  PublicSubnetRouteTableAssociation00:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTablePublic
+      SubnetId: !Ref PublicSubnet00
+
+  PublicSubnetRouteTableAssociation02:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTablePublic
+      SubnetId: !Ref PublicSubnet02
+
+  RouteINET:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref RouteTablePublic
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref internetGW
+
+#######
+# PrivateRouteTable
+#######
+  RouteTablePrivate:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref myVPC
+      Tags:
+        - Key: Name
+          Value: RouteTablePrivate
+
+  PrivateSubnetRouteTableAssociation01:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate
+      SubnetId: !Ref PrivateSubnet01
+
+  PrivateSubnetRouteTableAssociation03:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate
+      SubnetId: !Ref PrivateSubnet03
+
+  routeNATGW:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGW
+
+#####
+# OutputSection
+#####
+Outputs:
+    VPC:
+      Value: !Ref myVPC
+      Export:
+        Name: VPCId
+    internetGW:
+      Value: !Ref internetGW
+      Export:
+        Name: internetGW
+    PublicSubnet00:
+      Value: !Ref PublicSubnet00
+      Export: 
+        Name: PublicSubnet00
+    PrivateSubnet01:
+      Value: !Ref PrivateSubnet01
+      Export: 
+        Name: PrivateSubnet01
+    PublicSubnet02:
+      Value: !Ref PublicSubnet02
+      Export: 
+        Name: PublicSubnet02
+    PrivateSubnet03:
+      Value: !Ref PrivateSubnet03
+      Export: 
+        Name: PrivateSubnet03
+    NatGW:
+      Value: !Ref NatGW
+      Export:
+        Name: NatGWId

@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Mappings:
+  RegionMap:
+    us-east-1:
+      AmazonLinux2: "ami-02e136e904f3da870"
+      Ubuntu: "ami-09e67e426f25ce0d7"
+      WindowsServer: "ami-0416f96ae3d1a3f29"
+
+    us-west-1:
+      AmazonLinux2: "ami-03ab7423a204da002"
+      Ubuntu: "ami-0d382e80be7ffdae5"
+      WindowsServer: "ami-0cf4a2d03d1a3d62c"
+    
+    ap-northeast-1:
+      AmazonLinux2: "ami-0701e21c502689c31"
+      Ubuntu: "ami-0df99b3a8349462c6"
+      WindowsServer: "ami-070b53e3bb2d895e6"
+
+Resources: 
+      #セキリュティグループ追加
+        MySec:
+          Type: AWS::EC2::SecurityGroup
+          Properties:
+            GroupName: ec2-sg
+            GroupDescription: SSH Allow
+            VpcId: !ImportValue VPCName
+            SecurityGroupIngress:
+              - IpProtocol: tcp
+                FromPort: 22
+                ToPort: 22
+                CidrIp: 0.0.0.0/0
+            Tags:
+              - Key: Name
+                Value: ssh-sg
+
+      #EC2インスタンス追加
+        MyEC2:
+          Type: AWS::EC2::Instance
+          Properties:
+            IamInstanceProfile: "LabInstanceProfile"
+            ImageId:
+              Fn::FindInMap:
+                - "RegionMap"
+                - Ref: "AWS::Region"
+                - AmazonLinux2
+            InstanceType: t2.micro
+            NetworkInterfaces:
+              - AssociatePublicIpAddress: true 
+                DeviceIndex: "0"
+                SubnetId: !ImportValue SubnetName
+                GroupSet:
+                - !Ref MySec
+            Monitoring: true
+            UserData: !Base64 |
+              #!/bin/bash -ex
+              # put your script here
+              yum -y update
+              yum -y install httpd
+              systemctl enable httpd
+              systemctl start httpd
+              usermod -a -G apache ec2-user
+              chown -R ec2-user:apache /var/www/
+              chmod 2775 /var/www/
+            Tags:
+              - Key: Name
+                Value: MyEC2

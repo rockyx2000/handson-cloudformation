@@ -1,0 +1,116 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Resources: 
+
+        MyVPC:
+          Type: AWS::EC2::VPC
+          Properties:
+            CidrBlock: 10.0.0.0/16
+            EnableDnsSupport: true
+            Tags:
+              - Key: Name
+                Value: MyVPC
+        
+        PubSub1:
+          Type: AWS::EC2::Subnet
+          Properties:
+            AvailabilityZone: !Select 
+            - 0
+            - Fn::GetAZs: !Ref 'AWS::Region'
+            VpcId: !Ref MyVPC
+            CidrBlock: 10.0.1.0/24
+            Tags:
+              - Key: Name
+                Value: PublicSubnet
+
+        PriSub1:
+          Type: AWS::EC2::Subnet
+          Properties:
+            AvailabilityZone: !Select 
+            - 0
+            - Fn::GetAZs: !Ref 'AWS::Region'
+            CidrBlock: 10.0.2.0/24
+            VpcId: !Ref MyVPC
+
+        PubSub2:
+          Type: AWS::EC2::Subnet
+          Properties:
+            AvailabilityZone: !Select 
+            - 0
+            - Fn::GetAZs: !Ref 'AWS::Region'
+            CidrBlock: 10.0.3.0/24
+            VpcId: !Ref MyVPC
+        
+        PriSub2:
+          Type:  AWS::EC2::Subnet
+          Properties:
+            AvailabilityZone: !Select
+            - 0
+            - Fn::GetAZs: !Ref 'AWS::Region'
+            CidrBlock: 10.0.4.0/24
+            VpcId: !Ref MyVPC
+
+        MyIGW:
+          Type: AWS::EC2::InternetGateway
+          Properties:
+            Tags:
+              - Key: Name
+                Value: MyIGW
+        AttachGateway:
+          Type: AWS::EC2::VPCGatewayAttachment
+          Properties:
+            VpcId: !Ref MyVPC
+            InternetGatewayId: !Ref MyIGW
+
+        PublicRouteTable:
+          Type: AWS::EC2::RouteTable
+          Properties:
+            VpcId: !Ref MyVPC 
+            Tags:
+              - Key: Name
+                Value: PublicRoute
+        PubRoute:
+          Type: AWS::EC2::Route
+          DependsOn: AttachGateway
+          Properties:
+            RouteTableId: !Ref PublicRouteTable
+            DestinationCidrBlock: 0.0.0.0/0
+            GatewayId: !Ref MyIGW
+        
+        routeTableAssocPub1:
+          Type: AWS::EC2::SubnetRouteTableAssociation
+          Properties:
+            SubnetId: !Ref PubSub1
+            RouteTableId: !Ref PublicRouteTable
+
+        routeTableAssocName:
+          Type: AWS::EC2::SubnetRouteTableAssociation
+          Properties:
+            SubnetId: !Ref PubSub2
+            RouteTableId: !Ref PublicRouteTable
+
+Outputs:
+  VPC:
+    Value: !Ref MyVPC
+    Export: 
+      Name: VPCName
+
+  PubSub1:
+    Value: !Ref PubSub1
+    Export:
+      Name: Public1
+  
+  PubSub2:
+    Value: !Ref PubSub2
+    Export:
+      Name: Public2
+
+  PriSub1:
+    Value: !Ref PriSub1
+    Export:
+      Name: Private1
+
+  PriSub2:
+    Value: !Ref PriSub2
+    Export:
+      Name: Private2
